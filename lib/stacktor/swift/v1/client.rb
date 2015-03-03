@@ -24,6 +24,7 @@ module Stacktor
           data[:limit] = opts[:limit] || 1000
           data[:marker] = opts[:marker] if opts[:marker]
           data[:end_marker] = opts[:end_marker] if opts[:end_marker]
+          data[:prefix] = opts[:prefix] if opts[:prefix]
           data[:format] = 'json'
           data[:delimiter] = opts[:delimiter] if opts[:delimiter]
           data[:path] = opts[:path] if opts[:path]
