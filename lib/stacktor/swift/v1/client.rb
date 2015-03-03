@@ -18,7 +18,24 @@ module Stacktor
           return resp
         end
 
-        ## HELPERS
+        def list_objects(opts)
+          ctn = opts[:container_name]
+          data = {}
+          data[:limit] = opts[:limit] || 1000
+          data[:marker] = opts[:marker] if opts[:marker]
+          data[:end_marker] = opts[:end_marker] if opts[:end_marker]
+          data[:format] = 'json'
+          data[:delimiter] = opts[:delimiter] if opts[:delimiter]
+          data[:path] = opts[:path] if opts[:path]
+          result = self.execute_request(
+            path: "/#{ctn}",
+            method: "GET",
+            data: data
+          )
+          parse_objects(result, {'container_name' => ctn})
+          return result
+        end
+
 
         def get_object_content(opts, &resp_fn)
           ctn = opts[:container_name]
@@ -33,6 +50,18 @@ module Stacktor
           return resp
         end
 
+        ##
+        # Stores object in Swift container
+        #
+        # @param opts [Hash] the options hash
+        # @option opts [String] :container_name - name of the container
+        # @option opts [String] :object_name - name of the new object
+        # @option opts [File, String] :content - contents of the object
+        # @option opts [String] :content_type - content type for the object
+        # @option opts [Hash] :metadata - metadata to store with the object
+        #
+        # @return [Hash] Result object
+        #
         def create_object(opts)
           ctn = opts[:container_name]
           obn = opts[:object_name]
@@ -88,6 +117,8 @@ module Stacktor
           return resp
         end
 
+        ## HELPERS
+        
         def token=(val)
           @settings[:token] = val
         end
@@ -110,6 +141,14 @@ module Stacktor
           r = resp[:response]
           if resp[:success]
             resp[:object] = ContainerObject.new(data, self, headers: r)
+          end
+        end
+
+        def parse_objects(resp, data={})
+          if resp[:success]
+            resp[:objects] = JSON.parse(resp[:body]).collect{|obj_data|
+              ContainerObject.new(obj_data, self)
+            }
           end
         end
 
