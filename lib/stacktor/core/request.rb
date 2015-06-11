@@ -6,25 +6,6 @@ module Stacktor
 
     class Request
 
-      def self.connection_for(uri)
-        @connections ||= {}
-
-        host = uri.host
-        port = uri.port
-        secure = uri.scheme == 'https'
-
-        if @connections[ [host, port, secure] ].nil?
-          c = Net::HTTP.new(host, port)
-          c.use_ssl = secure
-          c.verify_mode = OpenSSL::SSL::VERIFY_NONE
-          c.start
-          @connections[ [host, port, secure] ] = c
-        else
-          c = @connections[ [host, port, secure] ]
-        end
-        return c
-      end
-
       def initialize(opts)
         @options = opts
       end
@@ -63,7 +44,7 @@ module Stacktor
       def execute
         data = self.data
         uri = URI(self.url)
-        conn = self.class.connection_for(uri)
+        conn = connection_for(uri)
         req_kls = Net::HTTP.const_get(self.method.capitalize)
         headers = self.headers
         resp_fn = @options[:response_handler]
@@ -107,6 +88,19 @@ module Stacktor
           ret[:body] = @resp.body
         end
         return ret
+      end
+
+      private
+
+      def connection_for(uri)
+        host = uri.host
+        port = uri.port
+        secure = uri.scheme == 'https'
+
+        c = Net::HTTP.new(host, port)
+        c.use_ssl = secure
+        c.verify_mode = OpenSSL::SSL::VERIFY_NONE
+        return c
       end
 
     end
