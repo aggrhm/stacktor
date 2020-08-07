@@ -59,6 +59,7 @@ module Stacktor
         # @option opts [String] :object_name - name of the new object
         # @option opts [File, String] :content - contents of the object
         # @option opts [String] :content_type - content type for the object
+        # @option opts [Hash] :headers - default headers for storing object
         # @option opts [Hash] :metadata - metadata to store with the object
         #
         # @return [Hash] Result object
@@ -72,7 +73,7 @@ module Stacktor
             body = opts[:content]
           end
 
-          headers = {}
+          headers = opts[:headers] || {}
           if opts[:content_type].nil?
             headers['X-Detect-Content-Type'] = 'true'
           else
